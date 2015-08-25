@@ -1,0 +1,133 @@
+---
+title: "Lab1_601"
+author: "Lindsay Berry"
+date: "8/25/2015"
+output: html_document
+---
+
+# Ex 1
+Draw $n$ random Bernoulli variables, with parameter $p$.
+
+$n=30, p=.7$
+```{r}
+nsim = 10000
+mat = matrix(NA, nrow = nsim, ncol = 6)
+for(i in 1:nsim){
+n=30
+p=.7
+ber = rbinom(n, 1, p)
+
+#frequentist
+phat = mean(ber)
+CI_sd = sqrt((phat*(1-phat))/n)
+CI_freq = c(phat - 1.96*CI_sd, phat + 1.96*CI_sd)
+cov1 = p > CI_freq[1] & p < CI_freq[2]
+freq_width = CI_freq[2]-CI_freq[1]
+  
+# uniform-prior Bayes
+succ = sum(ber)
+unif_int = qbeta(c(.025, .975), 1+succ, 1+n-succ)
+unif_width = unif_int[2]-unif_int[1]
+cov2 = p>unif_int[1] & p<unif_int[2]
+
+# beta-prior Bayes
+beta_int = qbeta(c(.025,.975), 5+succ, 2+n-succ)
+beta_width = beta_int[2]-beta_int[1]
+cov3 = p>beta_int[1] & p<beta_int[2]
+
+mat[i,] = c(cov1, freq_width, cov2, unif_width, cov3, beta_width)
+
+}
+coverage_freq = sum(mat[,1])/nsim
+coverage_unif = sum(mat[,3])/nsim
+coverage_beta = sum(mat[,5])/nsim
+```
+
+Frequentist
+```{r}
+## coverage
+coverage_freq
+## average width
+mean(mat[,2])
+```
+
+Bayesian Uniform Prior
+Coverage: 
+```{r}
+## coverage
+coverage_unif
+## average width
+mean(mat[,4])
+```
+
+Bayesian Beta Prior
+```{r}
+## coverage
+coverage_beta
+## average width
+mean(mat[,6])
+```
+
+# Ex 2
+Repeat for n=5
+
+
+```{r, echo = F}
+nsim = 10000
+mat = matrix(NA, nrow = nsim, ncol = 6)
+for(i in 1:nsim){
+n=5
+p=.7
+ber = rbinom(n, 1, p)
+
+#frequentist
+phat = sum(ber)/n
+CI_sd = sqrt(phat*(1-phat)/n)
+CI_freq = c(phat - 1.96*CI_sd, phat + 1.96*CI_sd)
+cov1 = (.7 > CI_freq[1]) & (.7 < CI_freq[2])
+freq_width = CI_freq[2]-CI_freq[1]
+  
+# uniform-prior Bayes
+succ = sum(ber)
+unif_int = qbeta(c(.025, .975), 1+sum(ber), 1+n-sum(ber))
+unif_width = unif_int[2]-unif_int[1]
+cov2 = (.7>unif_int[1]) & (.7<unif_int[2])
+
+# beta-prior Bayes
+beta_int = qbeta(c(.025,.975), 5+sum(ber), 2+n-sum(ber))
+beta_width = beta_int[2]-beta_int[1]
+cov3 = (.7>beta_int[1]) & (.7<beta_int[2])
+
+mat[i,] = c(cov1, freq_width, cov2, unif_width, cov3, beta_width)
+
+}
+coverage_freq = sum(mat[,1])
+coverage_unif = sum(mat[,3])
+coverage_beta = sum(mat[,5])
+```
+
+Frequentist
+```{r}
+## coverage
+coverage_freq/nsim
+## average width
+mean(mat[,2])
+```
+
+Bayesian Uniform Prior
+Coverage: 
+```{r}
+## coverage
+coverage_unif/nsim
+## average width
+mean(mat[,4])
+```
+
+Bayesian Beta Prior
+```{r}
+## coverage
+coverage_beta/nsim
+## average width
+mean(mat[,6])
+```
+
